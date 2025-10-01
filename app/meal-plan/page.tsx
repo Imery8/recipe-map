@@ -51,6 +51,7 @@ export default function MealPlanPage() {
 
   const loadData = async () => {
     setLoading(true)
+    await cleanupOldMealPlans()
     await Promise.all([loadRecipes(), loadCategories(), loadMealPlans()])
     setLoading(false)
   }
@@ -100,6 +101,21 @@ export default function MealPlanPage() {
     if (!error && data) {
       setMealPlans(data)
     }
+  }
+
+  const cleanupOldMealPlans = async () => {
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return
+
+    const currentMonday = getMonday(new Date())
+    const currentMondayStr = formatDate(currentMonday)
+
+    // Delete all meal plans before the current week
+    await supabase
+      .from('meal_plans')
+      .delete()
+      .eq('user_id', user.id)
+      .lt('week_start_date', currentMondayStr)
   }
 
   const handleAddRecipe = async (recipeId: string) => {
@@ -200,7 +216,8 @@ export default function MealPlanPage() {
             <div className="flex items-center gap-3">
               <button
                 onClick={() => setCurrentWeekStart(getPreviousWeek(currentWeekStart))}
-                className="px-3 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                disabled={formatDate(currentWeekStart) === formatDate(getMonday(new Date()))}
+                className="px-3 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent"
               >
                 ← Previous
               </button>
