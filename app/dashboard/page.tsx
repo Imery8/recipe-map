@@ -132,6 +132,12 @@ export default function DashboardPage() {
             </h1>
             <div className="flex items-center gap-3">
               <button
+                onClick={() => router.push('/meal-plan')}
+                className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors"
+              >
+                Meal Plan
+              </button>
+              <button
                 onClick={() => setShowCategoryManager(!showCategoryManager)}
                 className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors"
               >

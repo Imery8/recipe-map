@@ -9,6 +9,38 @@ export type Json =
 export interface Database {
   public: {
     Tables: {
+      meal_plans: {
+        Row: {
+          id: string
+          user_id: string
+          recipe_id: string
+          day_of_week: 'monday' | 'tuesday' | 'wednesday' | 'thursday' | 'friday' | 'saturday' | 'sunday'
+          meal_type: 'breakfast' | 'lunch' | 'dinner' | 'snack'
+          week_start_date: string
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          recipe_id: string
+          day_of_week: 'monday' | 'tuesday' | 'wednesday' | 'thursday' | 'friday' | 'saturday' | 'sunday'
+          meal_type: 'breakfast' | 'lunch' | 'dinner' | 'snack'
+          week_start_date: string
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          recipe_id?: string
+          day_of_week?: 'monday' | 'tuesday' | 'wednesday' | 'thursday' | 'friday' | 'saturday' | 'sunday'
+          meal_type?: 'breakfast' | 'lunch' | 'dinner' | 'snack'
+          week_start_date?: string
+          created_at?: string
+          updated_at?: string
+        }
+      }
       categories: {
         Row: {
           id: string
