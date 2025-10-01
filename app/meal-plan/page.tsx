@@ -200,25 +200,25 @@ export default function MealPlanPage() {
             <div className="flex items-center gap-3">
               <button
                 onClick={() => setCurrentWeekStart(getPreviousWeek(currentWeekStart))}
-                className="px-3 py-2 text-gray-600 hover:text-gray-900"
+                className="px-3 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
               >
                 ← Previous
               </button>
               <button
                 onClick={() => setCurrentWeekStart(getMonday(new Date()))}
-                className="px-3 py-2 text-sm font-medium text-orange-600 hover:text-orange-700"
+                className="px-3 py-2 text-sm font-medium text-orange-600 hover:bg-orange-50 rounded-lg transition-colors"
               >
                 This Week
               </button>
               <button
                 onClick={() => setCurrentWeekStart(getNextWeek(currentWeekStart))}
-                className="px-3 py-2 text-gray-600 hover:text-gray-900"
+                className="px-3 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
               >
                 Next →
               </button>
               <button
                 onClick={() => router.push('/dashboard')}
-                className="px-4 py-2 text-sm text-gray-600 hover:text-gray-900"
+                className="px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
               >
                 Back to Recipes
               </button>
