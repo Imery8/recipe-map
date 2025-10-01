@@ -37,28 +37,41 @@ export async function POST(request: NextRequest) {
 
       if (videoId) {
         try {
-          // Use YouTube oEmbed API from server-side
-          const oembedUrl = `https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${videoId}&format=json`
-          const response = await fetch(oembedUrl, {
-            signal: AbortSignal.timeout(5000),
-          })
+          // Use YouTube Data API v3
+          const apiKey = process.env.YOUTUBE_API_KEY
 
-          if (response.ok) {
-            const data = await response.json()
-            const metadata = {
-              title: data.title || 'YouTube Video',
-              description: data.author_name ? `Video by ${data.author_name}` : '',
-              thumbnail_url: data.thumbnail_url || '',
-              source_domain: 'youtube.com',
-              prep_time: null,
-              cuisine_type: null,
+          if (!apiKey) {
+            console.error('YouTube API key not configured')
+            // Fall through to regular scraping (will show manual entry banner)
+          } else {
+            const youtubeApiUrl = `https://www.googleapis.com/youtube/v3/videos?id=${videoId}&key=${apiKey}&part=snippet`
+            const response = await fetch(youtubeApiUrl, {
+              signal: AbortSignal.timeout(5000),
+            })
+
+            if (response.ok) {
+              const data = await response.json()
+
+              if (data.items && data.items.length > 0) {
+                const video = data.items[0].snippet
+                const metadata = {
+                  title: video.title || 'YouTube Video',
+                  description: video.description || `Video by ${video.channelTitle}`,
+                  thumbnail_url: video.thumbnails?.high?.url || video.thumbnails?.default?.url || '',
+                  source_domain: 'youtube.com',
+                  prep_time: null,
+                  cuisine_type: null,
+                }
+                console.log('YouTube Data API metadata:', metadata)
+                return NextResponse.json(metadata)
+              }
+            } else {
+              console.error('YouTube API error:', response.status, await response.text())
             }
-            console.log('YouTube oEmbed metadata:', metadata)
-            return NextResponse.json(metadata)
           }
         } catch (err) {
-          console.error('YouTube oEmbed error:', err)
-          // Fall through to regular scraping
+          console.error('YouTube API error:', err)
+          // Fall through to regular scraping (will show manual entry banner)
         }
       }
     }
