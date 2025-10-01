@@ -23,21 +23,36 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Fetch the page
+    // Fetch the page with better headers to avoid being blocked
     const response = await fetch(url, {
       headers: {
-        'User-Agent': 'Mozilla/5.0 (compatible; RecipeBot/1.0)',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+        'Accept-Language': 'en-US,en;q=0.5',
+        'Accept-Encoding': 'gzip, deflate, br',
+        'Connection': 'keep-alive',
+        'Upgrade-Insecure-Requests': '1',
       },
+      signal: AbortSignal.timeout(10000), // 10 second timeout
     })
 
     if (!response.ok) {
+      console.error(`Failed to fetch URL: ${response.status} ${response.statusText}`)
       return NextResponse.json(
-        { error: 'Failed to fetch URL' },
+        { error: `Failed to fetch URL: ${response.status}` },
         { status: 500 }
       )
     }
 
     const html = await response.text()
+
+    if (!html || html.length === 0) {
+      console.error('Empty HTML response')
+      return NextResponse.json(
+        { error: 'Received empty response from URL' },
+        { status: 500 }
+      )
+    }
     const $ = cheerio.load(html)
 
     // Extract Open Graph metadata
@@ -84,11 +99,19 @@ export async function POST(request: NextRequest) {
       cuisine_type: cuisineType,
     }
 
+    console.log('Scraped metadata:', metadata)
     return NextResponse.json(metadata)
   } catch (error) {
     console.error('Error scraping recipe:', error)
+
+    // Return more detailed error information
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error'
     return NextResponse.json(
-      { error: 'Failed to scrape recipe metadata' },
+      {
+        error: 'Failed to scrape recipe metadata',
+        details: errorMessage,
+        url: request.url
+      },
       { status: 500 }
     )
   }

@@ -84,20 +84,24 @@ export default function AddRecipeModal({ isOpen, onClose, onRecipeAdded }: AddRe
         body: JSON.stringify({ url: urlToScrape }),
       })
 
+      const data = await response.json()
+
       if (!response.ok) {
-        throw new Error('Failed to scrape recipe')
+        console.error('Scraper API error:', data)
+        // Don't show error to user, just allow manual entry
+        return
       }
 
-      const metadata = await response.json()
+      console.log('Scraped data:', data)
 
       setFormData(prev => ({
         ...prev,
-        title: metadata.title || '',
-        description: metadata.description || '',
-        thumbnail_url: metadata.thumbnail_url || '',
-        prep_time: metadata.prep_time || '',
-        cuisine_type: metadata.cuisine_type || '',
-        source_domain: metadata.source_domain || '',
+        title: data.title || '',
+        description: data.description || '',
+        thumbnail_url: data.thumbnail_url || '',
+        prep_time: data.prep_time || '',
+        cuisine_type: data.cuisine_type || '',
+        source_domain: data.source_domain || '',
       }))
     } catch (err) {
       console.error('Scraping error:', err)
