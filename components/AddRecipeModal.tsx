@@ -28,6 +28,7 @@ export default function AddRecipeModal({ isOpen, onClose, onRecipeAdded }: AddRe
   const [loading, setLoading] = useState(false)
   const [scraping, setScraping] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [youtubeWarning, setYoutubeWarning] = useState(false)
   const supabase = createClient()
 
   useEffect(() => {
@@ -94,15 +95,31 @@ export default function AddRecipeModal({ isOpen, onClose, onRecipeAdded }: AddRe
 
       console.log('Scraped data:', data)
 
-      setFormData(prev => ({
-        ...prev,
-        title: data.title || '',
-        description: data.description || '',
-        thumbnail_url: data.thumbnail_url || '',
-        prep_time: data.prep_time || '',
-        cuisine_type: data.cuisine_type || '',
-        source_domain: data.source_domain || '',
-      }))
+      // Check if we got a generic YouTube response (scraping failed)
+      const isGenericYouTube = data.title === ' - YouTube' || data.title === 'YouTube Video'
+
+      if (isGenericYouTube && (urlToScrape.includes('youtube.com') || urlToScrape.includes('youtu.be'))) {
+        // YouTube scraping failed - keep fields empty for manual entry
+        setFormData(prev => ({
+          ...prev,
+          title: '',
+          description: '',
+          thumbnail_url: '',
+          source_domain: 'youtube.com',
+        }))
+        setYoutubeWarning(true)
+        console.log('YouTube metadata unavailable - please enter manually')
+      } else {
+        setFormData(prev => ({
+          ...prev,
+          title: data.title || '',
+          description: data.description || '',
+          thumbnail_url: data.thumbnail_url || '',
+          prep_time: data.prep_time || '',
+          cuisine_type: data.cuisine_type || '',
+          source_domain: data.source_domain || '',
+        }))
+      }
     } catch (err) {
       console.error('Scraping error:', err)
       // Don't show error to user, just allow manual entry
@@ -178,6 +195,12 @@ export default function AddRecipeModal({ isOpen, onClose, onRecipeAdded }: AddRe
             {error && (
               <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg text-sm">
                 {error}
+              </div>
+            )}
+
+            {youtubeWarning && (
+              <div className="bg-blue-50 border border-blue-200 text-blue-700 px-4 py-3 rounded-lg text-sm">
+                <strong>YouTube detected:</strong> Please manually enter the recipe title and description below.
               </div>
             )}
 
