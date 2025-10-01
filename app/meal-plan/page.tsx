@@ -237,9 +237,9 @@ export default function MealPlanPage() {
               </div>
               <button
                 onClick={() => router.push('/dashboard')}
-                className="px-3 sm:px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                className="px-3 sm:px-4 py-2 text-sm font-medium text-white bg-orange-600 hover:bg-orange-700 rounded-lg transition-colors"
               >
-                ← Back to Recipes
+                Back to Recipes
               </button>
             </div>
           </div>
@@ -248,7 +248,7 @@ export default function MealPlanPage() {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Weekly Calendar Grid */}
-        <div className="grid grid-cols-7 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-7 gap-4">
           {DAYS_OF_WEEK.map((day) => (
             <div key={day} className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
               <div className="bg-orange-50 px-4 py-3 border-b border-gray-200">
@@ -313,7 +313,7 @@ export default function MealPlanPage() {
 
       {/* Recipe Picker Modal */}
       {selectedSlot && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-start justify-center p-4 z-50 overflow-y-auto pt-20">
           <div className="bg-white rounded-2xl shadow-xl max-w-4xl w-full max-h-[85vh] overflow-hidden flex flex-col">
             <div className="p-6 border-b border-gray-200">
               <div className="flex justify-between items-center mb-4">
