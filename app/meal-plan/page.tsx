@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { Database } from '@/lib/types/database.types'
@@ -26,37 +26,22 @@ export default function MealPlanPage() {
   const router = useRouter()
   const supabase = createClient()
 
-  useEffect(() => {
-    checkAuth()
-  }, [])
-
-  useEffect(() => {
-    if (!loading) {
-      loadMealPlans()
-    }
-  }, [currentWeekStart])
-
-  useEffect(() => {
-    filterRecipes()
-  }, [recipes, selectedCategory, searchQuery, showFavoritesOnly])
-
-  const checkAuth = async () => {
+  const cleanupOldMealPlans = useCallback(async () => {
     const { data: { user } } = await supabase.auth.getUser()
-    if (!user) {
-      router.push('/login')
-      return
-    }
-    await loadData()
-  }
+    if (!user) return
 
-  const loadData = async () => {
-    setLoading(true)
-    await cleanupOldMealPlans()
-    await Promise.all([loadRecipes(), loadCategories(), loadMealPlans()])
-    setLoading(false)
-  }
+    const currentMonday = getMonday(new Date())
+    const currentMondayStr = formatDate(currentMonday)
 
-  const loadRecipes = async () => {
+    // Delete all meal plans before the current week
+    await supabase
+      .from('meal_plans')
+      .delete()
+      .eq('user_id', user.id)
+      .lt('week_start_date', currentMondayStr)
+  }, [supabase])
+
+  const loadRecipes = useCallback(async () => {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
 
@@ -69,9 +54,9 @@ export default function MealPlanPage() {
     if (!error && data) {
       setRecipes(data)
     }
-  }
+  }, [supabase])
 
-  const loadCategories = async () => {
+  const loadCategories = useCallback(async () => {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
 
@@ -84,9 +69,9 @@ export default function MealPlanPage() {
     if (!error && data) {
       setCategories(data)
     }
-  }
+  }, [supabase])
 
-  const loadMealPlans = async () => {
+  const loadMealPlans = useCallback(async () => {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
 
@@ -101,22 +86,65 @@ export default function MealPlanPage() {
     if (!error && data) {
       setMealPlans(data)
     }
-  }
+  }, [supabase, currentWeekStart])
 
-  const cleanupOldMealPlans = async () => {
+  const loadData = useCallback(async () => {
+    setLoading(true)
+    await cleanupOldMealPlans()
+    await Promise.all([loadRecipes(), loadCategories(), loadMealPlans()])
+    setLoading(false)
+  }, [cleanupOldMealPlans, loadRecipes, loadCategories, loadMealPlans])
+
+  const checkAuth = useCallback(async () => {
     const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return
+    if (!user) {
+      router.push('/login')
+      return
+    }
+    await loadData()
+  }, [supabase, router, loadData])
 
-    const currentMonday = getMonday(new Date())
-    const currentMondayStr = formatDate(currentMonday)
+  const filterRecipes = useCallback(() => {
+    let filtered = [...recipes]
 
-    // Delete all meal plans before the current week
-    await supabase
-      .from('meal_plans')
-      .delete()
-      .eq('user_id', user.id)
-      .lt('week_start_date', currentMondayStr)
-  }
+    // Filter by category
+    if (selectedCategory) {
+      filtered = filtered.filter((r) => r.category_id === selectedCategory)
+    }
+
+    // Filter by favorites
+    if (showFavoritesOnly) {
+      filtered = filtered.filter((r) => r.is_favorite)
+    }
+
+    // Filter by search query
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase()
+      filtered = filtered.filter(
+        (r) =>
+          r.title.toLowerCase().includes(query) ||
+          r.description?.toLowerCase().includes(query) ||
+          r.cuisine_type?.toLowerCase().includes(query) ||
+          r.source_domain?.toLowerCase().includes(query)
+      )
+    }
+
+    setFilteredRecipes(filtered)
+  }, [recipes, selectedCategory, searchQuery, showFavoritesOnly])
+
+  useEffect(() => {
+    checkAuth()
+  }, [checkAuth])
+
+  useEffect(() => {
+    if (!loading) {
+      loadMealPlans()
+    }
+  }, [loading, loadMealPlans])
+
+  useEffect(() => {
+    filterRecipes()
+  }, [filterRecipes])
 
   const handleAddRecipe = async (recipeId: string) => {
     if (!selectedSlot) return
@@ -160,34 +188,6 @@ export default function MealPlanPage() {
   const getMealPlanId = (day: string, mealType: string) => {
     const mealPlan = mealPlans.find(mp => mp.day_of_week === day && mp.meal_type === mealType)
     return mealPlan?.id || null
-  }
-
-  const filterRecipes = () => {
-    let filtered = [...recipes]
-
-    // Filter by category
-    if (selectedCategory) {
-      filtered = filtered.filter((r) => r.category_id === selectedCategory)
-    }
-
-    // Filter by favorites
-    if (showFavoritesOnly) {
-      filtered = filtered.filter((r) => r.is_favorite)
-    }
-
-    // Filter by search query
-    if (searchQuery) {
-      const query = searchQuery.toLowerCase()
-      filtered = filtered.filter(
-        (r) =>
-          r.title.toLowerCase().includes(query) ||
-          r.description?.toLowerCase().includes(query) ||
-          r.cuisine_type?.toLowerCase().includes(query) ||
-          r.source_domain?.toLowerCase().includes(query)
-      )
-    }
-
-    setFilteredRecipes(filtered)
   }
 
   if (loading) {

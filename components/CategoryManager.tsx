@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { Database } from '@/lib/types/database.types'
 
@@ -27,11 +27,7 @@ export default function CategoryManager({ onCategoryChange }: CategoryManagerPro
   const [deleteConfirm, setDeleteConfirm] = useState<{ id: string; name: string } | null>(null)
   const supabase = createClient()
 
-  useEffect(() => {
-    loadCategories()
-  }, [])
-
-  const loadCategories = async () => {
+  const loadCategories = useCallback(async () => {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
 
@@ -44,7 +40,11 @@ export default function CategoryManager({ onCategoryChange }: CategoryManagerPro
     if (!error && data) {
       setCategories(data)
     }
-  }
+  }, [supabase])
+
+  useEffect(() => {
+    loadCategories()
+  }, [loadCategories])
 
   const handleAddCategory = async (e: React.FormEvent) => {
     e.preventDefault()

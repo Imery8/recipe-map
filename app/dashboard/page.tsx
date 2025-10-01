@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { Database } from '@/lib/types/database.types'
@@ -24,30 +24,7 @@ export default function DashboardPage() {
   const router = useRouter()
   const supabase = createClient()
 
-  useEffect(() => {
-    checkAuth()
-  }, [])
-
-  useEffect(() => {
-    filterRecipes()
-  }, [recipes, selectedCategory, searchQuery, showFavoritesOnly])
-
-  const checkAuth = async () => {
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) {
-      router.push('/login')
-      return
-    }
-    await loadData()
-  }
-
-  const loadData = async () => {
-    setLoading(true)
-    await Promise.all([loadRecipes(), loadCategories()])
-    setLoading(false)
-  }
-
-  const loadRecipes = async () => {
+  const loadRecipes = useCallback(async () => {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
 
@@ -60,9 +37,9 @@ export default function DashboardPage() {
     if (!error && data) {
       setRecipes(data)
     }
-  }
+  }, [supabase])
 
-  const loadCategories = async () => {
+  const loadCategories = useCallback(async () => {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
 
@@ -75,9 +52,24 @@ export default function DashboardPage() {
     if (!error && data) {
       setCategories(data)
     }
-  }
+  }, [supabase])
 
-  const filterRecipes = () => {
+  const loadData = useCallback(async () => {
+    setLoading(true)
+    await Promise.all([loadRecipes(), loadCategories()])
+    setLoading(false)
+  }, [loadRecipes, loadCategories])
+
+  const checkAuth = useCallback(async () => {
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) {
+      router.push('/login')
+      return
+    }
+    await loadData()
+  }, [supabase, router, loadData])
+
+  const filterRecipes = useCallback(() => {
     let filtered = [...recipes]
 
     // Filter by category
@@ -103,7 +95,15 @@ export default function DashboardPage() {
     }
 
     setFilteredRecipes(filtered)
-  }
+  }, [recipes, selectedCategory, searchQuery, showFavoritesOnly])
+
+  useEffect(() => {
+    checkAuth()
+  }, [checkAuth])
+
+  useEffect(() => {
+    filterRecipes()
+  }, [filterRecipes])
 
   const handleSignOut = async () => {
     await supabase.auth.signOut()

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { Database } from '@/lib/types/database.types'
 
@@ -31,6 +31,21 @@ export default function AddRecipeModal({ isOpen, onClose, onRecipeAdded }: AddRe
   const [youtubeWarning, setYoutubeWarning] = useState(false)
   const supabase = createClient()
 
+  const loadCategories = useCallback(async () => {
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return
+
+    const { data, error } = await supabase
+      .from('categories')
+      .select('*')
+      .eq('user_id', user.id)
+      .order('name')
+
+    if (!error && data) {
+      setCategories(data)
+    }
+  }, [supabase])
+
   useEffect(() => {
     if (isOpen) {
       loadCategories()
@@ -48,22 +63,7 @@ export default function AddRecipeModal({ isOpen, onClose, onRecipeAdded }: AddRe
       setYoutubeWarning(false)
       setError(null)
     }
-  }, [isOpen])
-
-  const loadCategories = async () => {
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return
-
-    const { data, error } = await supabase
-      .from('categories')
-      .select('*')
-      .eq('user_id', user.id)
-      .order('name')
-
-    if (!error && data) {
-      setCategories(data)
-    }
-  }
+  }, [isOpen, loadCategories])
 
   const handleUrlChange = async (newUrl: string) => {
     setUrl(newUrl)
