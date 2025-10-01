@@ -56,7 +56,6 @@ export async function POST(request: NextRequest) {
 
     // Extract recipe-specific metadata if available (schema.org)
     let prepTime = null
-    let difficulty = null
     let cuisineType = null
 
     const recipeSchema = $('script[type="application/ld+json"]')
@@ -83,7 +82,6 @@ export async function POST(request: NextRequest) {
       source_domain: parsedUrl.hostname.replace('www.', ''),
       prep_time: prepTime,
       cuisine_type: cuisineType,
-      difficulty: difficulty,
     }
 
     return NextResponse.json(metadata)
