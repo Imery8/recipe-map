@@ -1,46 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import * as cheerio from 'cheerio'
 
-async function scrapeYouTube(url: string, parsedUrl: URL) {
-  try {
-    // Use YouTube's oEmbed API to get metadata
-    const oembedUrl = `https://www.youtube.com/oembed?url=${encodeURIComponent(url)}&format=json`
-
-    const response = await fetch(oembedUrl, {
-      signal: AbortSignal.timeout(5000),
-    })
-
-    if (!response.ok) {
-      throw new Error('Failed to fetch YouTube metadata')
-    }
-
-    const data = await response.json()
-
-    const metadata = {
-      title: data.title || 'YouTube Video',
-      description: data.author_name ? `Video by ${data.author_name}` : 'YouTube Recipe Video',
-      thumbnail_url: data.thumbnail_url || '',
-      source_domain: 'youtube.com',
-      prep_time: null,
-      cuisine_type: null,
-    }
-
-    console.log('YouTube metadata:', metadata)
-    return NextResponse.json(metadata)
-  } catch (error) {
-    console.error('Error scraping YouTube:', error)
-    // Fallback to generic YouTube response
-    return NextResponse.json({
-      title: 'YouTube Recipe Video',
-      description: 'Recipe video from YouTube',
-      thumbnail_url: '',
-      source_domain: 'youtube.com',
-      prep_time: null,
-      cuisine_type: null,
-    })
-  }
-}
-
 export async function POST(request: NextRequest) {
   try {
     const { url } = await request.json()
@@ -61,13 +21,6 @@ export async function POST(request: NextRequest) {
         { error: 'Invalid URL' },
         { status: 400 }
       )
-    }
-
-    // Check if it's a YouTube URL and handle specially
-    const isYouTube = parsedUrl.hostname.includes('youtube.com') || parsedUrl.hostname.includes('youtu.be')
-
-    if (isYouTube) {
-      return await scrapeYouTube(url, parsedUrl)
     }
 
     // Fetch the page with better headers to avoid being blocked
