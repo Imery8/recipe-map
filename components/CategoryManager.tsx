@@ -24,6 +24,7 @@ export default function CategoryManager({ onCategoryChange }: CategoryManagerPro
   const [selectedColor, setSelectedColor] = useState(COLOR_OPTIONS[0])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [deleteConfirm, setDeleteConfirm] = useState<{ id: string; name: string } | null>(null)
   const supabase = createClient()
 
   useEffect(() => {
@@ -75,14 +76,19 @@ export default function CategoryManager({ onCategoryChange }: CategoryManagerPro
     }
   }
 
-  const handleDeleteCategory = async (id: string) => {
-    if (!confirm('Delete this category? Recipes in this category will not be deleted.')) return
+  const handleDeleteClick = (id: string, name: string) => {
+    setDeleteConfirm({ id, name })
+  }
 
+  const handleDeleteCategory = async () => {
+    if (!deleteConfirm) return
+
+    setLoading(true)
     try {
       const { error } = await supabase
         .from('categories')
         .delete()
-        .eq('id', id)
+        .eq('id', deleteConfirm.id)
 
       if (error) throw error
 
@@ -90,13 +96,16 @@ export default function CategoryManager({ onCategoryChange }: CategoryManagerPro
       onCategoryChange()
     } catch (err) {
       console.error('Error deleting category:', err)
+    } finally {
+      setLoading(false)
+      setDeleteConfirm(null)
     }
   }
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+    <div>
       <div className="flex justify-between items-center mb-4">
-        <h3 className="text-lg font-semibold text-gray-900">Categories</h3>
+        <h3 className="text-lg font-semibold text-gray-900">Your Categories</h3>
         <button
           onClick={() => setShowForm(!showForm)}
           className="text-sm text-orange-600 hover:text-orange-700 font-medium"
@@ -177,7 +186,7 @@ export default function CategoryManager({ onCategoryChange }: CategoryManagerPro
                 </span>
               </div>
               <button
-                onClick={() => handleDeleteCategory(category.id)}
+                onClick={() => handleDeleteClick(category.id, category.name)}
                 className="text-gray-400 hover:text-red-600 transition-colors"
               >
                 <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
@@ -188,6 +197,34 @@ export default function CategoryManager({ onCategoryChange }: CategoryManagerPro
           ))
         )}
       </div>
+
+      {/* Delete Confirmation Modal */}
+      {deleteConfirm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">Delete Category?</h3>
+            <p className="text-gray-600 mb-6">
+              Are you sure you want to delete &quot;{deleteConfirm.name}&quot;? Recipes in this category will not be deleted.
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setDeleteConfirm(null)}
+                disabled={loading}
+                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDeleteCategory}
+                disabled={loading}
+                className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50"
+              >
+                {loading ? 'Deleting...' : 'Delete'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
