@@ -34,6 +34,19 @@ export default function AddRecipeModal({ isOpen, onClose, onRecipeAdded }: AddRe
   useEffect(() => {
     if (isOpen) {
       loadCategories()
+      // Reset form when modal opens
+      setUrl('')
+      setFormData({
+        title: '',
+        description: '',
+        thumbnail_url: '',
+        prep_time: '',
+        difficulty: '',
+        cuisine_type: '',
+        category_id: null,
+      })
+      setYoutubeWarning(false)
+      setError(null)
     }
   }, [isOpen])
 
