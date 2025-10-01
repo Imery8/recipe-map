@@ -235,36 +235,52 @@ export default function MealPlanPage() {
               <div className="bg-orange-50 px-4 py-3 border-b border-gray-200">
                 <h3 className="font-semibold text-gray-900 capitalize">{day}</h3>
               </div>
-              <div className="p-3 space-y-3">
+              <div className="p-3 space-y-4">
                 {MEAL_TYPES.map((mealType) => {
                   const recipe = getRecipeForSlot(day, mealType)
                   const mealPlanId = getMealPlanId(day, mealType)
 
                   return (
-                    <div key={mealType} className="border border-gray-200 rounded-lg p-2">
-                      <div className="text-xs font-medium text-gray-500 capitalize mb-1">
+                    <div key={mealType} className="border border-gray-200 rounded-lg p-3">
+                      <div className="text-xs font-medium text-gray-500 capitalize mb-2">
                         {mealType}
                       </div>
                       {recipe ? (
                         <div className="relative group">
-                          <div className="text-sm font-medium text-gray-900 line-clamp-2">
-                            {recipe.title}
-                          </div>
                           <button
                             onClick={() => mealPlanId && handleRemoveRecipe(mealPlanId)}
-                            className="absolute top-0 right-0 text-gray-400 hover:text-red-600 opacity-0 group-hover:opacity-100 transition-opacity"
+                            className="absolute -top-1 -right-1 w-6 h-6 bg-white rounded-full shadow-sm border border-gray-200 flex items-center justify-center text-gray-400 hover:text-red-600 hover:border-red-300 opacity-0 group-hover:opacity-100 transition-opacity z-10"
                           >
-                            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                            <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
                               <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
                             </svg>
                           </button>
+
+                          <a
+                            href={recipe.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="block hover:opacity-80 transition-opacity"
+                          >
+                            {recipe.thumbnail_url && (
+                              <img
+                                src={recipe.thumbnail_url}
+                                alt={recipe.title}
+                                className="w-full h-24 object-cover rounded-lg mb-2"
+                                onError={(e) => { e.currentTarget.style.display = 'none' }}
+                              />
+                            )}
+                            <div className="text-sm font-medium text-gray-900 line-clamp-2 hover:text-orange-600 transition-colors">
+                              {recipe.title}
+                            </div>
+                          </a>
                         </div>
                       ) : (
                         <button
                           onClick={() => setSelectedSlot({ day, mealType })}
-                          className="w-full text-xs text-orange-600 hover:text-orange-700 font-medium text-center py-1 border border-dashed border-gray-300 rounded hover:border-orange-600 transition-colors"
+                          className="w-full text-sm text-orange-600 hover:text-orange-700 font-medium text-center py-8 border-2 border-dashed border-gray-300 rounded-lg hover:border-orange-600 hover:bg-orange-50 transition-colors"
                         >
-                          + Add
+                          + Add Recipe
                         </button>
                       )}
                     </div>
