@@ -13,12 +13,16 @@ interface RecipeCardProps {
 
 export default function RecipeCard({ recipe, onUpdate }: RecipeCardProps) {
   const [showMenu, setShowMenu] = useState(false)
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [loading, setLoading] = useState(false)
   const supabase = createClient()
 
-  const handleDelete = async () => {
-    if (!confirm('Are you sure you want to delete this recipe?')) return
+  const handleDeleteClick = () => {
+    setShowMenu(false)
+    setShowDeleteConfirm(true)
+  }
 
+  const handleDelete = async () => {
     setLoading(true)
     try {
       const { error } = await supabase
@@ -34,6 +38,7 @@ export default function RecipeCard({ recipe, onUpdate }: RecipeCardProps) {
       alert('Failed to delete recipe')
     } finally {
       setLoading(false)
+      setShowDeleteConfirm(false)
     }
   }
 
@@ -170,7 +175,7 @@ export default function RecipeCard({ recipe, onUpdate }: RecipeCardProps) {
                 />
                 <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-20">
                   <button
-                    onClick={handleDelete}
+                    onClick={handleDeleteClick}
                     disabled={loading}
                     className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 disabled:opacity-50"
                   >
@@ -182,6 +187,34 @@ export default function RecipeCard({ recipe, onUpdate }: RecipeCardProps) {
           </div>
         </div>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">Delete Recipe?</h3>
+            <p className="text-gray-600 mb-6">
+              Are you sure you want to delete &quot;{recipe.title}&quot;? This action cannot be undone.
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowDeleteConfirm(false)}
+                disabled={loading}
+                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDelete}
+                disabled={loading}
+                className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50"
+              >
+                {loading ? 'Deleting...' : 'Delete'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
