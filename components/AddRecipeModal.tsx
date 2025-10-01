@@ -78,31 +78,6 @@ export default function AddRecipeModal({ isOpen, onClose, onRecipeAdded }: AddRe
     setError(null)
 
     try {
-      // Check if it's a YouTube URL - use client-side oEmbed instead
-      const isYouTube = urlToScrape.includes('youtube.com') || urlToScrape.includes('youtu.be')
-
-      if (isYouTube) {
-        // Use YouTube's oEmbed API directly from the client
-        const oembedUrl = `https://www.youtube.com/oembed?url=${encodeURIComponent(urlToScrape)}&format=json`
-        const response = await fetch(oembedUrl)
-
-        if (response.ok) {
-          const data = await response.json()
-          const parsedUrl = new URL(urlToScrape)
-
-          setFormData(prev => ({
-            ...prev,
-            title: data.title || '',
-            description: data.author_name ? `Video by ${data.author_name}` : '',
-            thumbnail_url: data.thumbnail_url || '',
-            source_domain: 'youtube.com',
-          }))
-          setScraping(false)
-          return
-        }
-      }
-
-      // For non-YouTube URLs, use the server-side scraper
       const response = await fetch('/api/scrape-recipe', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

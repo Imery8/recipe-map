@@ -23,6 +23,46 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Check if it's a YouTube URL
+    const isYouTube = parsedUrl.hostname.includes('youtube.com') || parsedUrl.hostname.includes('youtu.be')
+
+    if (isYouTube) {
+      // Extract video ID
+      let videoId = null
+      if (parsedUrl.hostname.includes('youtube.com')) {
+        videoId = parsedUrl.searchParams.get('v')
+      } else if (parsedUrl.hostname.includes('youtu.be')) {
+        videoId = parsedUrl.pathname.slice(1).split('?')[0]
+      }
+
+      if (videoId) {
+        try {
+          // Use YouTube oEmbed API from server-side
+          const oembedUrl = `https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${videoId}&format=json`
+          const response = await fetch(oembedUrl, {
+            signal: AbortSignal.timeout(5000),
+          })
+
+          if (response.ok) {
+            const data = await response.json()
+            const metadata = {
+              title: data.title || 'YouTube Video',
+              description: data.author_name ? `Video by ${data.author_name}` : '',
+              thumbnail_url: data.thumbnail_url || '',
+              source_domain: 'youtube.com',
+              prep_time: null,
+              cuisine_type: null,
+            }
+            console.log('YouTube oEmbed metadata:', metadata)
+            return NextResponse.json(metadata)
+          }
+        } catch (err) {
+          console.error('YouTube oEmbed error:', err)
+          // Fall through to regular scraping
+        }
+      }
+    }
+
     // Fetch the page with better headers to avoid being blocked
     const response = await fetch(url, {
       headers: {
