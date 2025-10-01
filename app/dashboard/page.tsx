@@ -126,35 +126,39 @@ export default function DashboardPage() {
       {/* Header */}
       <header className="bg-white border-b border-gray-200 sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex justify-between items-center">
-            <h1 className="text-2xl font-bold text-gray-900">
+          <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3">
+            <h1 className="text-xl sm:text-2xl font-bold text-gray-900">
               Den&apos;s Recipes
             </h1>
-            <div className="flex items-center gap-3">
-              <button
-                onClick={() => router.push('/meal-plan')}
-                className="px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
-              >
-                Meal Plan
-              </button>
-              <button
-                onClick={() => setShowCategoryManager(!showCategoryManager)}
-                className="px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
-              >
-                Manage Categories
-              </button>
-              <button
-                onClick={() => setShowAddModal(true)}
-                className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors font-medium"
-              >
-                + Add Recipe
-              </button>
-              <button
-                onClick={handleSignOut}
-                className="px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
-              >
-                Sign Out
-              </button>
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
+              <div className="flex gap-2">
+                <button
+                  onClick={() => router.push('/meal-plan')}
+                  className="flex-1 sm:flex-none px-3 sm:px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+                >
+                  Meal Plan
+                </button>
+                <button
+                  onClick={() => setShowCategoryManager(!showCategoryManager)}
+                  className="flex-1 sm:flex-none px-3 sm:px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+                >
+                  Categories
+                </button>
+              </div>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setShowAddModal(true)}
+                  className="flex-1 sm:flex-none px-3 sm:px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors font-medium text-sm"
+                >
+                  + Add Recipe
+                </button>
+                <button
+                  onClick={handleSignOut}
+                  className="flex-1 sm:flex-none px-3 sm:px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                >
+                  Sign Out
+                </button>
+              </div>
             </div>
           </div>
         </div>
